@@ -5,7 +5,7 @@ import { useAuth } from '../contexts/AuthContext'
 
 const AuthPage = () => {
   const navigate = useNavigate()
-  const { login, register, loginWithGoogle } = useAuth()
+  const { login, register, loginWithGoogle, isFirebaseConfigured } = useAuth()
   const [isLogin, setIsLogin] = useState(true)
   const [isSeller, setIsSeller] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -58,6 +58,11 @@ const AuthPage = () => {
       navigate('/')
     } catch (error) {
       console.error('Auth error:', error)
+      if (error.message.includes('Firebase is not configured')) {
+        alert('Demo mode: Firebase configuration required for authentication. Please set up your Firebase project.')
+      } else {
+        alert(error.message || 'Authentication failed')
+      }
     } finally {
       setLoading(false)
     }
@@ -70,6 +75,11 @@ const AuthPage = () => {
       navigate('/')
     } catch (error) {
       console.error('Google auth error:', error)
+      if (error.message.includes('Firebase is not configured')) {
+        alert('Demo mode: Firebase configuration required for Google authentication. Please set up your Firebase project.')
+      } else {
+        alert(error.message || 'Google authentication failed')
+      }
     } finally {
       setLoading(false)
     }
@@ -87,6 +97,13 @@ const AuthPage = () => {
           <h2 className="mt-6 text-3xl font-bold text-gray-900">
             {isLogin ? 'Sign in to your account' : 'Create your account'}
           </h2>
+          {!isFirebaseConfigured && (
+            <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+              <p className="text-sm text-yellow-800">
+                <strong>Demo Mode:</strong> Firebase is not configured. Please set up your Firebase project to enable authentication.
+              </p>
+            </div>
+          )}
           <p className="mt-2 text-sm text-gray-600">
             {isLogin ? "Don't have an account? " : "Already have an account? "}
             <button
