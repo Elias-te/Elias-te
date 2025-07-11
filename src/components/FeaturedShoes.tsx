@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { Heart, Star, ShoppingBag } from 'lucide-react'
+import { Heart, Star, ShoppingBag, ArrowRight } from 'lucide-react'
 
 const FeaturedShoes = () => {
   const featuredShoes = [
