@@ -20,8 +20,8 @@ interface UserProfile {
   userType: 'buyer' | 'seller'
   storeName?: string
   businessType?: string
-  createdAt: Date
-}
+import { User, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from 'firebase/auth'
+import { auth } from '../config/firebase'
 
 interface AuthContextType {
   currentUser: User | null
@@ -31,6 +31,7 @@ interface AuthContextType {
   logout: () => Promise<void>
   loginWithGoogle: () => Promise<void>
   loading: boolean
+  isFirebaseConfigured: boolean
 }
 
 interface RegisterData {
@@ -57,6 +58,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
+  const [isFirebaseConfigured, setIsFirebaseConfigured] = useState(false)
+
+  // Check if Firebase is properly configured
+  useEffect(() => {
+    try {
+      // Test Firebase configuration
+      const config = auth.app.options
+      const isValid = config.apiKey && 
+                     config.apiKey !== 'demo-api-key' && 
+                     config.projectId && 
+                     config.projectId !== 'demo-project'
+      setIsFirebaseConfigured(isValid)
+    } catch (error) {
+      console.warn('Firebase configuration check failed:', error)
+      setIsFirebaseConfigured(false)
+    }
+  }, [])
 
   const register = async (userData: RegisterData) => {
     try {
@@ -79,10 +97,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error: any) {
       toast.error(error.message)
       throw error
+    if (!isFirebaseConfigured) {
+      throw new Error('Firebase is not configured. Please set up your Firebase project configuration.')
+    }
     }
   }
 
   const login = async (email: string, password: string) => {
+    if (!isFirebaseConfigured) {
+      throw new Error('Firebase is not configured. Please set up your Firebase project configuration.')
+    }
     try {
       await signInWithEmailAndPassword(auth, email, password)
       toast.success('Logged in successfully!')
@@ -120,17 +144,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }
 
   const logout = async () => {
+    if (!isFirebaseConfigured) {
+      return
+    }
     try {
       await signOut(auth)
       setUserProfile(null)
       toast.success('Logged out successfully!')
     } catch (error: any) {
       toast.error(error.message)
+    if (!isFirebaseConfigured) {
+      throw new Error('Firebase is not configured. Please set up your Firebase project configuration.')
+    }
       throw error
     }
   }
 
   useEffect(() => {
+    if (!isFirebaseConfigured) {
+      setLoading(false)
+      return
+    }
+
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user)
       
@@ -157,7 +192,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     register,
     logout,
     loginWithGoogle,
-    loading
+    loading,
+    isFirebaseConfigured
   }
 
   return (
