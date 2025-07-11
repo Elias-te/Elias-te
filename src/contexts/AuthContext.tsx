@@ -18,6 +18,7 @@ interface UserProfile {
   firstName: string
   lastName: string
   userType: 'buyer' | 'seller'
+  isAdmin?: boolean
   storeName?: string
   businessType?: string
 }
@@ -85,8 +86,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         firstName: userData.firstName,
         lastName: userData.lastName,
         userType: userData.userType,
+        isAdmin: userData.email === 'admin@soleconnect.com',
+        isAdmin: userData.email === 'admin@soleconnect.com', // Make admin@soleconnect.com the admin
         storeName: userData.storeName,
         businessType: userData.businessType,
+        isAdmin: email === 'admin@soleconnect.com',
         createdAt: new Date()
       }
 
@@ -130,6 +134,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           firstName: user.displayName?.split(' ')[0] || '',
           lastName: user.displayName?.split(' ')[1] || '',
           userType: 'buyer',
+          isAdmin: user.email === 'admin@soleconnect.com',
           createdAt: new Date()
         }
         await setDoc(doc(db, 'users', user.uid), profile)

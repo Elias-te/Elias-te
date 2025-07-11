@@ -10,6 +10,7 @@ import SellerDashboard from './pages/SellerDashboard'
 import ProductPage from './pages/ProductPage'
 import AuthPage from './pages/AuthPage'
 import ShopsPage from './pages/ShopsPage'
+import AdminPanel from './components/AdminPanel'
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
             <Route path="/seller-dashboard" element={<SellerDashboard />} />
             <Route path="/product/:id" element={<ProductPage />} />
             <Route path="/auth" element={<AuthPage />} />
+            <Route path="/admin" element={<AdminPanel />} />
           </Routes>
         </main>
         <Footer />

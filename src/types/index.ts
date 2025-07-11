@@ -62,6 +62,7 @@ export interface User {
   firstName: string
   lastName: string
   userType: 'buyer' | 'seller'
+  isAdmin?: boolean
   storeName?: string
   businessType?: string
   createdAt: Date

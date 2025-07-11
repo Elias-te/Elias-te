@@ -101,6 +101,8 @@ const AuthPage = () => {
             <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
               <p className="text-sm text-yellow-800">
                 <strong>Demo Mode:</strong> Firebase is not configured. Please set up your Firebase project to enable authentication.
+                <br />
+                <strong>Admin Access:</strong> Use email "admin@soleconnect.com" to get admin privileges.
               </p>
             </div>
           )}
