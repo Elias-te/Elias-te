@@ -20,8 +20,7 @@ interface UserProfile {
   userType: 'buyer' | 'seller'
   storeName?: string
   businessType?: string
-import { User, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from 'firebase/auth'
-import { auth } from '../config/firebase'
+}
 
 interface AuthContextType {
   currentUser: User | null
@@ -97,9 +96,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error: any) {
       toast.error(error.message)
       throw error
+    }
     if (!isFirebaseConfigured) {
       throw new Error('Firebase is not configured. Please set up your Firebase project configuration.')
-    }
     }
   }
 
@@ -153,9 +152,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       toast.success('Logged out successfully!')
     } catch (error: any) {
       toast.error(error.message)
-    if (!isFirebaseConfigured) {
-      throw new Error('Firebase is not configured. Please set up your Firebase project configuration.')
-    }
+      if (!isFirebaseConfigured) {
+        throw new Error('Firebase is not configured. Please set up your Firebase project configuration.')
+      }
       throw error
     }
   }
