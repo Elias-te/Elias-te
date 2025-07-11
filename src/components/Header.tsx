@@ -1,13 +1,22 @@
 import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Search, ShoppingBag, User, Menu, X, Heart } from 'lucide-react'
+import { useAuth } from '../contexts/AuthContext'
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const location = useLocation()
+  const { currentUser, userProfile, logout } = useAuth()
 
   const isActive = (path: string) => location.pathname === path
 
+  const handleLogout = async () => {
+    try {
+      await logout()
+    } catch (error) {
+      console.error('Logout error:', error)
+    }
+  }
   return (
     <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -43,6 +52,14 @@ const Header = () => {
               Marketplace
             </Link>
             <Link
+              to="/shops"
+              className={`text-sm font-medium transition-colors ${
+                isActive('/shops') ? 'text-primary-600' : 'text-gray-700 hover:text-primary-600'
+              }`}
+            >
+              Shops
+            </Link>
+            <Link
               to="/seller-dashboard"
               className={`text-sm font-medium transition-colors ${
                 isActive('/seller-dashboard') ? 'text-primary-600' : 'text-gray-700 hover:text-primary-600'
@@ -57,13 +74,40 @@ const Header = () => {
               <button className="p-2 text-gray-600 hover:text-primary-600 transition-colors">
                 <ShoppingBag className="w-5 h-5" />
               </button>
-              <Link
-                to="/auth"
-                className="flex items-center space-x-1 text-gray-700 hover:text-primary-600 transition-colors"
-              >
-                <User className="w-5 h-5" />
-                <span className="text-sm font-medium">Sign In</span>
-              </Link>
+              {currentUser ? (
+                <div className="relative group">
+                  <button className="flex items-center space-x-1 text-gray-700 hover:text-primary-600 transition-colors">
+                    <User className="w-5 h-5" />
+                    <span className="text-sm font-medium">
+                      {userProfile?.firstName || 'User'}
+                    </span>
+                  </button>
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                    <div className="py-2">
+                      <Link
+                        to="/seller-dashboard"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        Dashboard
+                      </Link>
+                      <button
+                        onClick={handleLogout}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        Sign Out
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <Link
+                  to="/auth"
+                  className="flex items-center space-x-1 text-gray-700 hover:text-primary-600 transition-colors"
+                >
+                  <User className="w-5 h-5" />
+                  <span className="text-sm font-medium">Sign In</span>
+                </Link>
+              )}
             </div>
           </nav>
 
@@ -100,19 +144,38 @@ const Header = () => {
                   Marketplace
                 </Link>
                 <Link
+                  to="/shops"
+                  className="block py-2 text-gray-700 hover:text-primary-600 transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Shops
+                </Link>
+                <Link
                   to="/seller-dashboard"
                   className="block py-2 text-gray-700 hover:text-primary-600 transition-colors"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Sell Shoes
                 </Link>
-                <Link
-                  to="/auth"
-                  className="block py-2 text-gray-700 hover:text-primary-600 transition-colors"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Sign In
-                </Link>
+                {currentUser ? (
+                  <button
+                    onClick={() => {
+                      handleLogout()
+                      setIsMenuOpen(false)
+                    }}
+                    className="block py-2 text-gray-700 hover:text-primary-600 transition-colors"
+                  >
+                    Sign Out
+                  </button>
+                ) : (
+                  <Link
+                    to="/auth"
+                    className="block py-2 text-gray-700 hover:text-primary-600 transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Sign In
+                  </Link>
+                )}
               </nav>
             </div>
           </div>

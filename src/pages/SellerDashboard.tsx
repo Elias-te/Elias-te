@@ -1,8 +1,22 @@
 import React, { useState } from 'react'
 import { Plus, Package, TrendingUp, Users, DollarSign, Eye, Edit, Trash2, BarChart3 } from 'lucide-react'
+import { useAuth } from '../contexts/AuthContext'
+import { useShoes } from '../hooks/useShoes'
+import AddShoeModal from '../components/AddShoeModal'
+import ShoeCard from '../components/ShoeCard'
 
 const SellerDashboard = () => {
+  const { userProfile } = useAuth()
+  const { shoes, loading, fetchShoes, deleteShoe } = useShoes()
   const [activeTab, setActiveTab] = useState('overview')
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [editingShoe, setEditingShoe] = useState(null)
+
+  React.useEffect(() => {
+    if (userProfile) {
+      fetchShoes({ sellerId: userProfile.uid })
+    }
+  }, [userProfile])
 
   const stats = [
     {
@@ -35,36 +49,6 @@ const SellerDashboard = () => {
     }
   ]
 
-  const products = [
-    {
-      id: 1,
-      name: 'Classic White Sneakers',
-      image: 'https://images.pexels.com/photos/2529148/pexels-photo-2529148.jpeg?auto=compress&cs=tinysrgb&w=200',
-      price: 89.99,
-      stock: 15,
-      sales: 24,
-      status: 'Active'
-    },
-    {
-      id: 2,
-      name: 'Elegant Black Heels',
-      image: 'https://images.pexels.com/photos/1598505/pexels-photo-1598505.jpeg?auto=compress&cs=tinysrgb&w=200',
-      price: 159.99,
-      stock: 8,
-      sales: 12,
-      status: 'Active'
-    },
-    {
-      id: 3,
-      name: 'Casual Brown Boots',
-      image: 'https://images.pexels.com/photos/1240892/pexels-photo-1240892.jpeg?auto=compress&cs=tinysrgb&w=200',
-      price: 129.99,
-      stock: 0,
-      sales: 18,
-      status: 'Out of Stock'
-    }
-  ]
-
   const recentOrders = [
     {
       id: '#ORD-001',
@@ -91,6 +75,17 @@ const SellerDashboard = () => {
       date: '2025-01-13'
     }
   ]
+
+  const handleDeleteShoe = async (shoeId: string) => {
+    if (window.confirm('Are you sure you want to delete this shoe?')) {
+      try {
+        await deleteShoe(shoeId)
+        fetchShoes({ sellerId: userProfile?.uid })
+      } catch (error) {
+        console.error('Error deleting shoe:', error)
+      }
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -184,20 +179,20 @@ const SellerDashboard = () => {
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Performing Products</h3>
                     <div className="space-y-3">
-                      {products.slice(0, 3).map((product) => (
-                        <div key={product.id} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                      {shoes.slice(0, 3).map((shoe) => (
+                        <div key={shoe.id} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
                           <img
-                            src={product.image}
-                            alt={product.name}
+                            src={shoe.images[0] || 'https://images.pexels.com/photos/2529148/pexels-photo-2529148.jpeg?auto=compress&cs=tinysrgb&w=200'}
+                            alt={shoe.name}
                             className="w-12 h-12 object-cover rounded-lg"
                           />
                           <div className="flex-1">
-                            <p className="font-medium text-gray-900">{product.name}</p>
-                            <p className="text-sm text-gray-600">{product.sales} sales • ${product.price}</p>
+                            <p className="font-medium text-gray-900">{shoe.name}</p>
+                            <p className="text-sm text-gray-600">{shoe.views} views • ${shoe.price}</p>
                           </div>
                           <div className="text-right">
-                            <p className="text-sm font-medium text-gray-900">${(product.sales * product.price).toFixed(2)}</p>
-                            <p className="text-xs text-gray-500">Revenue</p>
+                            <p className="text-sm font-medium text-gray-900">${shoe.price}</p>
+                            <p className="text-xs text-gray-500">Price</p>
                           </div>
                         </div>
                       ))}
@@ -212,69 +207,62 @@ const SellerDashboard = () => {
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-lg font-semibold text-gray-900">Your Products</h3>
-                  <button className="btn-primary flex items-center">
+                  <button 
+                    onClick={() => setShowAddModal(true)}
+                    className="btn-primary flex items-center"
+                  >
                     <Plus className="w-4 h-4 mr-2" />
                     Add New Product
                   </button>
                 </div>
 
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b border-gray-200">
-                        <th className="text-left py-3 px-4 font-medium text-gray-900">Product</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-900">Price</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-900">Stock</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-900">Sales</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-900">Status</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-900">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {products.map((product) => (
-                        <tr key={product.id} className="border-b border-gray-100">
-                          <td className="py-4 px-4">
-                            <div className="flex items-center space-x-3">
-                              <img
-                                src={product.image}
-                                alt={product.name}
-                                className="w-12 h-12 object-cover rounded-lg"
-                              />
-                              <span className="font-medium text-gray-900">{product.name}</span>
-                            </div>
-                          </td>
-                          <td className="py-4 px-4 text-gray-900">${product.price}</td>
-                          <td className="py-4 px-4">
-                            <span className={`${product.stock === 0 ? 'text-red-600' : 'text-gray-900'}`}>
-                              {product.stock}
-                            </span>
-                          </td>
-                          <td className="py-4 px-4 text-gray-900">{product.sales}</td>
-                          <td className="py-4 px-4">
-                            <span className={`inline-block px-2 py-1 text-xs rounded-full ${
-                              product.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                            }`}>
-                              {product.status}
-                            </span>
-                          </td>
-                          <td className="py-4 px-4">
-                            <div className="flex items-center space-x-2">
-                              <button className="p-1 text-gray-600 hover:text-primary-600">
-                                <Eye className="w-4 h-4" />
-                              </button>
-                              <button className="p-1 text-gray-600 hover:text-primary-600">
-                                <Edit className="w-4 h-4" />
-                              </button>
-                              <button className="p-1 text-gray-600 hover:text-red-600">
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                {loading ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {[...Array(3)].map((_, i) => (
+                      <div key={i} className="bg-white rounded-xl shadow-sm animate-pulse">
+                        <div className="h-48 bg-gray-200"></div>
+                        <div className="p-4 space-y-3">
+                          <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                          <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : shoes.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {shoes.map((shoe) => (
+                      <div key={shoe.id} className="relative">
+                        <ShoeCard shoe={shoe} />
+                        <div className="absolute top-2 right-2 flex space-x-1">
+                          <button
+                            onClick={() => setEditingShoe(shoe)}
+                            className="p-1 bg-white rounded-full shadow-md text-gray-600 hover:text-primary-600"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteShoe(shoe.id)}
+                            className="p-1 bg-white rounded-full shadow-md text-gray-600 hover:text-red-600"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No shoes listed yet</h3>
+                    <p className="text-gray-600 mb-4">Start by adding your first shoe to the marketplace.</p>
+                    <button 
+                      onClick={() => setShowAddModal(true)}
+                      className="btn-primary"
+                    >
+                      Add Your First Shoe
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 
@@ -427,6 +415,16 @@ const SellerDashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* Add/Edit Shoe Modal */}
+      <AddShoeModal
+        isOpen={showAddModal || !!editingShoe}
+        onClose={() => {
+          setShowAddModal(false)
+          setEditingShoe(null)
+        }}
+        shoe={editingShoe}
+      />
     </div>
   )
 }

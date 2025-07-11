@@ -1,10 +1,15 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Eye, EyeOff, Mail, Lock, User, Store } from 'lucide-react'
+import { useAuth } from '../contexts/AuthContext'
 
 const AuthPage = () => {
+  const navigate = useNavigate()
+  const { login, register, loginWithGoogle } = useAuth()
   const [isLogin, setIsLogin] = useState(true)
   const [isSeller, setIsSeller] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -24,8 +29,50 @@ const AuthPage = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // Handle form submission
-    console.log('Form submitted:', formData)
+    handleAuth()
+  }
+
+  const handleAuth = async () => {
+    if (!isLogin && formData.password !== formData.confirmPassword) {
+      alert('Passwords do not match')
+      return
+    }
+
+    try {
+      setLoading(true)
+      
+      if (isLogin) {
+        await login(formData.email, formData.password)
+      } else {
+        await register({
+          email: formData.email,
+          password: formData.password,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          userType: isSeller ? 'seller' : 'buyer',
+          storeName: formData.storeName,
+          businessType: formData.businessType
+        })
+      }
+      
+      navigate('/')
+    } catch (error) {
+      console.error('Auth error:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleGoogleAuth = async () => {
+    try {
+      setLoading(true)
+      await loginWithGoogle()
+      navigate('/')
+    } catch (error) {
+      console.error('Google auth error:', error)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -245,8 +292,9 @@ const AuthPage = () => {
             <button
               type="submit"
               className="w-full btn-primary py-3 text-lg"
+              disabled={loading}
             >
-              {isLogin ? 'Sign In' : 'Create Account'}
+              {loading ? 'Please wait...' : (isLogin ? 'Sign In' : 'Create Account')}
             </button>
 
             {!isLogin && (
@@ -270,7 +318,12 @@ const AuthPage = () => {
             </div>
 
             <div className="mt-6 grid grid-cols-2 gap-3">
-              <button className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+              <button 
+                type="button"
+                onClick={handleGoogleAuth}
+                disabled={loading}
+                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+              >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                   <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -280,7 +333,11 @@ const AuthPage = () => {
                 <span className="ml-2">Google</span>
               </button>
 
-              <button className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+              <button 
+                type="button"
+                disabled={loading}
+                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+              >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
                 </svg>

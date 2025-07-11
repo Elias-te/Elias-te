@@ -1,103 +1,39 @@
 import React, { useState } from 'react'
 import { Filter, Grid, List, Star, Heart, ShoppingBag } from 'lucide-react'
+import { useShoes } from '../hooks/useShoes'
+import ShoeCard from '../components/ShoeCard'
 
 const MarketplacePage = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
-  const [selectedFilters, setSelectedFilters] = useState({
-    category: '',
-    brand: '',
-    size: '',
-    priceRange: '',
-    color: ''
-  })
+  const [searchTerm, setSearchTerm] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState('All')
+  const [selectedCondition, setSelectedCondition] = useState('All')
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000])
+  
+  const { shoes, loading, fetchShoes } = useShoes()
 
-  const shoes = [
-    {
-      id: 1,
-      name: 'Classic White Sneakers',
-      brand: 'Urban Steps',
-      price: 89.99,
-      originalPrice: 120.00,
-      rating: 4.8,
-      reviews: 124,
-      image: 'https://images.pexels.com/photos/2529148/pexels-photo-2529148.jpeg?auto=compress&cs=tinysrgb&w=400',
-      category: 'Sneakers',
-      sizes: ['7', '8', '9', '10', '11'],
-      colors: ['White', 'Black'],
-      isOnSale: true
-    },
-    {
-      id: 2,
-      name: 'Elegant Black Heels',
-      brand: 'Luxe Fashion',
-      price: 159.99,
-      rating: 4.9,
-      reviews: 89,
-      image: 'https://images.pexels.com/photos/1598505/pexels-photo-1598505.jpeg?auto=compress&cs=tinysrgb&w=400',
-      category: 'Heels',
-      sizes: ['6', '7', '8', '9'],
-      colors: ['Black'],
-      isOnSale: false
-    },
-    {
-      id: 3,
-      name: 'Casual Brown Boots',
-      brand: 'Comfort Zone',
-      price: 129.99,
-      originalPrice: 160.00,
-      rating: 4.7,
-      reviews: 156,
-      image: 'https://images.pexels.com/photos/1240892/pexels-photo-1240892.jpeg?auto=compress&cs=tinysrgb&w=400',
-      category: 'Boots',
-      sizes: ['8', '9', '10', '11', '12'],
-      colors: ['Brown', 'Black'],
-      isOnSale: true
-    },
-    {
-      id: 4,
-      name: 'Performance Running Shoes',
-      brand: 'Athletic Pro',
-      price: 199.99,
-      rating: 4.9,
-      reviews: 203,
-      image: 'https://images.pexels.com/photos/2529147/pexels-photo-2529147.jpeg?auto=compress&cs=tinysrgb&w=400',
-      category: 'Athletic',
-      sizes: ['7', '8', '9', '10', '11', '12'],
-      colors: ['Blue', 'Red', 'Black'],
-      isOnSale: false
-    },
-    {
-      id: 5,
-      name: 'Summer Sandals',
-      brand: 'Beach Walk',
-      price: 49.99,
-      rating: 4.5,
-      reviews: 67,
-      image: 'https://images.pexels.com/photos/1598508/pexels-photo-1598508.jpeg?auto=compress&cs=tinysrgb&w=400',
-      category: 'Sandals',
-      sizes: ['6', '7', '8', '9', '10'],
-      colors: ['Tan', 'White', 'Black'],
-      isOnSale: false
-    },
-    {
-      id: 6,
-      name: 'Formal Oxford Shoes',
-      brand: 'Business Elite',
-      price: 179.99,
-      rating: 4.8,
-      reviews: 92,
-      image: 'https://images.pexels.com/photos/1240893/pexels-photo-1240893.jpeg?auto=compress&cs=tinysrgb&w=400',
-      category: 'Formal',
-      sizes: ['8', '9', '10', '11'],
-      colors: ['Black', 'Brown'],
-      isOnSale: false
-    }
-  ]
+  React.useEffect(() => {
+    fetchShoes({
+      category: selectedCategory !== 'All' ? selectedCategory : undefined,
+      condition: selectedCondition !== 'All' ? selectedCondition : undefined,
+      priceRange: priceRange,
+      searchTerm: searchTerm || undefined
+    })
+  }, [selectedCategory, selectedCondition, priceRange, searchTerm])
 
-  const categories = ['All', 'Sneakers', 'Heels', 'Boots', 'Athletic', 'Sandals', 'Formal']
-  const brands = ['All', 'Urban Steps', 'Luxe Fashion', 'Comfort Zone', 'Athletic Pro', 'Beach Walk', 'Business Elite']
+  const categories = ['All', 'Sneakers', 'Heels', 'Boots', 'Athletic', 'Sandals', 'Formal', 'Casual', 'Flats']
+  const conditions = ['All', 'new', 'used', 'refurbished']
   const sizes = ['6', '7', '8', '9', '10', '11', '12']
-  const priceRanges = ['All', '$0-$50', '$50-$100', '$100-$150', '$150-$200', '$200+']
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    fetchShoes({
+      category: selectedCategory !== 'All' ? selectedCategory : undefined,
+      condition: selectedCondition !== 'All' ? selectedCondition : undefined,
+      priceRange: priceRange,
+      searchTerm: searchTerm || undefined
+    })
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -117,6 +53,20 @@ const MarketplacePage = () => {
                 <h3 className="font-semibold text-gray-900">Filters</h3>
               </div>
 
+              {/* Search */}
+              <form onSubmit={handleSearch} className="mb-6">
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search shoes..."
+                  className="w-full input-field text-sm mb-2"
+                />
+                <button type="submit" className="w-full btn-primary text-sm py-2">
+                  Search
+                </button>
+              </form>
+
               {/* Category Filter */}
               <div className="mb-6">
                 <h4 className="font-medium text-gray-900 mb-3">Category</h4>
@@ -127,8 +77,9 @@ const MarketplacePage = () => {
                         type="radio"
                         name="category"
                         value={category}
+                        checked={selectedCategory === category}
                         className="text-primary-600 focus:ring-primary-500"
-                        onChange={(e) => setSelectedFilters({...selectedFilters, category: e.target.value})}
+                        onChange={(e) => setSelectedCategory(e.target.value)}
                       />
                       <span className="ml-2 text-sm text-gray-700">{category}</span>
                     </label>
@@ -136,36 +87,22 @@ const MarketplacePage = () => {
                 </div>
               </div>
 
-              {/* Brand Filter */}
+              {/* Condition Filter */}
               <div className="mb-6">
-                <h4 className="font-medium text-gray-900 mb-3">Brand</h4>
-                <select
-                  className="w-full input-field text-sm"
-                  value={selectedFilters.brand}
-                  onChange={(e) => setSelectedFilters({...selectedFilters, brand: e.target.value})}
-                >
-                  {brands.map((brand) => (
-                    <option key={brand} value={brand}>{brand}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Size Filter */}
-              <div className="mb-6">
-                <h4 className="font-medium text-gray-900 mb-3">Size</h4>
-                <div className="grid grid-cols-3 gap-2">
-                  {sizes.map((size) => (
-                    <button
-                      key={size}
-                      className={`p-2 text-sm border rounded ${
-                        selectedFilters.size === size
-                          ? 'border-primary-600 bg-primary-50 text-primary-600'
-                          : 'border-gray-300 hover:border-gray-400'
-                      }`}
-                      onClick={() => setSelectedFilters({...selectedFilters, size: size})}
-                    >
-                      {size}
-                    </button>
+                <h4 className="font-medium text-gray-900 mb-3">Condition</h4>
+                <div className="space-y-2">
+                  {conditions.map((condition) => (
+                    <label key={condition} className="flex items-center">
+                      <input
+                        type="radio"
+                        name="condition"
+                        value={condition}
+                        checked={selectedCondition === condition}
+                        className="text-primary-600 focus:ring-primary-500"
+                        onChange={(e) => setSelectedCondition(e.target.value)}
+                      />
+                      <span className="ml-2 text-sm text-gray-700 capitalize">{condition}</span>
+                    </label>
                   ))}
                 </div>
               </div>
@@ -174,18 +111,24 @@ const MarketplacePage = () => {
               <div className="mb-6">
                 <h4 className="font-medium text-gray-900 mb-3">Price Range</h4>
                 <div className="space-y-2">
-                  {priceRanges.map((range) => (
-                    <label key={range} className="flex items-center">
-                      <input
-                        type="radio"
-                        name="priceRange"
-                        value={range}
-                        className="text-primary-600 focus:ring-primary-500"
-                        onChange={(e) => setSelectedFilters({...selectedFilters, priceRange: e.target.value})}
-                      />
-                      <span className="ml-2 text-sm text-gray-700">{range}</span>
-                    </label>
-                  ))}
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="number"
+                      value={priceRange[0]}
+                      onChange={(e) => setPriceRange([Number(e.target.value), priceRange[1]])}
+                      className="w-20 input-field text-sm"
+                      placeholder="Min"
+                    />
+                    <span className="text-gray-500">-</span>
+                    <input
+                      type="number"
+                      value={priceRange[1]}
+                      onChange={(e) => setPriceRange([priceRange[0], Number(e.target.value)])}
+                      className="w-20 input-field text-sm"
+                      placeholder="Max"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500">${priceRange[0]} - ${priceRange[1]}</p>
                 </div>
               </div>
             </div>
@@ -195,14 +138,16 @@ const MarketplacePage = () => {
           <div className="flex-1">
             {/* View Controls */}
             <div className="flex items-center justify-between mb-6">
-              <p className="text-gray-600">{shoes.length} shoes found</p>
+              <p className="text-gray-600">
+                {loading ? 'Loading...' : `${shoes.length} shoes found`}
+              </p>
               <div className="flex items-center space-x-4">
                 <select className="input-field text-sm">
                   <option>Sort by: Featured</option>
                   <option>Price: Low to High</option>
                   <option>Price: High to Low</option>
                   <option>Newest First</option>
-                  <option>Best Rating</option>
+                  <option>Most Views</option>
                 </select>
                 <div className="flex border border-gray-300 rounded-lg">
                   <button
@@ -222,76 +167,42 @@ const MarketplacePage = () => {
             </div>
 
             {/* Products Grid */}
-            <div className={`grid gap-6 ${
-              viewMode === 'grid' 
-                ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' 
-                : 'grid-cols-1'
-            }`}>
-              {shoes.map((shoe) => (
-                <div key={shoe.id} className={`bg-white rounded-xl shadow-sm hover:shadow-lg transition-shadow duration-300 overflow-hidden shoe-card ${
-                  viewMode === 'list' ? 'flex' : ''
-                }`}>
-                  <div className={`relative ${viewMode === 'list' ? 'w-48' : ''}`}>
-                    <img
-                      src={shoe.image}
-                      alt={shoe.name}
-                      className={`object-cover ${
-                        viewMode === 'list' ? 'w-full h-full' : 'w-full h-48'
-                      }`}
-                    />
-                    {shoe.isOnSale && (
-                      <div className="absolute top-3 left-3 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
-                        Sale
-                      </div>
-                    )}
-                    <button className="absolute top-3 right-3 p-2 bg-white rounded-full shadow-md hover:bg-gray-50 transition-colors">
-                      <Heart className="w-4 h-4 text-gray-600" />
-                    </button>
-                  </div>
-                  
-                  <div className={`p-4 ${viewMode === 'list' ? 'flex-1' : ''}`}>
-                    <div className="mb-2">
-                      <p className="text-sm text-gray-500">{shoe.brand}</p>
-                      <h3 className="font-semibold text-gray-900">{shoe.name}</h3>
-                    </div>
-                    
-                    <div className="flex items-center mb-2">
-                      <div className="flex items-center">
-                        <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                        <span className="text-sm text-gray-600 ml-1">{shoe.rating}</span>
-                      </div>
-                      <span className="text-sm text-gray-500 ml-2">({shoe.reviews})</span>
-                    </div>
-                    
-                    <div className="flex items-center mb-3">
-                      <span className="text-sm text-gray-600 mr-2">Sizes:</span>
-                      <div className="flex space-x-1">
-                        {shoe.sizes.slice(0, 3).map((size) => (
-                          <span key={size} className="text-xs bg-gray-100 px-2 py-1 rounded">
-                            {size}
-                          </span>
-                        ))}
-                        {shoe.sizes.length > 3 && (
-                          <span className="text-xs text-gray-500">+{shoe.sizes.length - 3}</span>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-lg font-bold text-gray-900">${shoe.price}</span>
-                        {shoe.originalPrice && (
-                          <span className="text-sm text-gray-500 line-through">${shoe.originalPrice}</span>
-                        )}
-                      </div>
-                      <button className="p-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">
-                        <ShoppingBag className="w-4 h-4" />
-                      </button>
+            {loading ? (
+              <div className={`grid gap-6 ${
+                viewMode === 'grid' 
+                  ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' 
+                  : 'grid-cols-1'
+              }`}>
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="bg-white rounded-xl shadow-sm animate-pulse">
+                    <div className="h-48 bg-gray-200"></div>
+                    <div className="p-4 space-y-3">
+                      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                      <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                      <div className="h-3 bg-gray-200 rounded w-full"></div>
                     </div>
                   </div>
+                ))}
+              </div>
+            ) : shoes.length > 0 ? (
+              <div className={`grid gap-6 ${
+                viewMode === 'grid' 
+                  ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' 
+                  : 'grid-cols-1'
+              }`}>
+                {shoes.map((shoe) => (
+                  <ShoeCard key={shoe.id} shoe={shoe} viewMode={viewMode} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <ShoppingBag className="w-12 h-12 text-gray-400" />
                 </div>
-              ))}
-            </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No shoes found</h3>
+                <p className="text-gray-600">Try adjusting your search criteria or browse all shoes.</p>
+              </div>
+            )}
           </div>
         </div>
       </div>
